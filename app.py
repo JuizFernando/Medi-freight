@@ -3,26 +3,31 @@ import requests
 
 app = Flask(__name__)
 
-# Configuração da API Detrack
+# Configurações da API Detrack
 DETRACK_API = "https://app.detrack.com/api/v2/dn/jobs/search"
-API_KEY = "2b86acd2ded193cf662b3c843827a65352844a7bdb510b5e"  # Substitua se necessário
+API_KEY = "2b86acd2ded193cf662b3c843827a65352844a7bdb510b5e"  # 👈 Mantenha isso seguro!
 
 @app.route('/track', methods=['POST'])
-def proxy_to_detrack():
+def proxy():
+    """Rota principal que faz o proxy para a API Detrack"""
     try:
-        # Encaminha a requisição para a API da Detrack
         response = requests.post(
             DETRACK_API,
             headers={
                 "X-API-KEY": API_KEY,
-                "Content-Type": "application/json",
-                "User-Agent": "RenderProxy/1.0"
+                "Content-Type": "application/json"
             },
-            json=request.json  # Repassa os dados recebidos
+            json=request.json,
+            timeout=10
         )
         return jsonify(response.json()), response.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/')
+def health_check():
+    """Rota simples para verificar se o serviço está online"""
+    return jsonify({"status": "online", "service": "Detrack Proxy"})
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+    app.run(host='0.0.0.0', port=10000)  # ⚠️ Porta OBRIGATÓRIA para o Render
